@@ -4,6 +4,35 @@ import { uploadToCloudinary } from "../utils/cloudinary.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResonse } from "../utils/ApiResponse.js"
 
+
+
+
+
+// Access and refresh token generator
+const generateAccessAndRefreshToken = async (userId) =>{
+
+  try {
+
+    const user = await User.findById(userId)
+
+    const accessToken = await user.generateAccessToken()
+    const refreshToken = await user.generateRefreshToken()
+
+    user.refreshToken = refreshToken;
+   await user.save({
+    validateBeforeSave : false
+   })
+
+   return {
+    accessToken, refreshToken
+   }
+    
+  } catch (error) {
+    
+  }
+}
+
+
 export const registerUser = asyncHandler(async (req, res) => {
   const { userName, email, fullName, password } = req.body;
 
@@ -73,3 +102,52 @@ export const registerUser = asyncHandler(async (req, res) => {
  return res.status(201).json( new ApiResonse(200, newlyCreatedUser, "user created successfully"))
 
 });
+
+export const loginUser = asyncHandler( async (req, res)=>{
+  const {userName, email, password } = req.body
+  console.log(req.body)
+
+  if( !(userName || email) ){
+    throw new ApiError(400, "user name or email is required !")
+  }
+
+  const foundUser = await User.findOne(
+    {
+      $or : [{userName}, {email}]
+    }
+  )
+
+  if( !foundUser ){
+    throw new ApiError(404, "user not found with this username or email")
+  }
+
+  const isPasswordValid = await foundUser.isPasswordCorrect(password)
+
+  console.log("password validation", isPasswordValid)
+
+  if(!isPasswordValid){
+    throw new ApiError(401, "Invalid user credentials !")
+  }
+
+  const { accessToken, refreshToken } = await generateAccessAndRefreshToken(foundUser._id)
+
+  const logedinUser = await User.findById(foundUser._id).select("-password -refreshToken")
+
+  const options = {
+    httpOnly : true,
+    secure : true,
+  }
+
+  return res.status(200)
+  .cookie("accessToken", accessToken, options)
+  .cookie("refreshToken", refreshToken, options)
+  .json(
+    new ApiResonse(200, {
+      user : logedinUser,
+      accessToken : accessToken,
+      refreshToken : refreshToken,
+    },
+    "user loged in successfully"
+  )
+  )
+})
