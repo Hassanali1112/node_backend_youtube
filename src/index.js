@@ -1,25 +1,22 @@
-import dotenv from "dotenv"
+import dotenv from "dotenv";
+dotenv.config();
+
+// console.log(process.env)
+
 import { app } from "./app.js";
 import { connectDB } from "./database/index.js";
 
-dotenv.config({
-  path : "./.env"
-})
-
-const PORT = process.env.PORT || 8080
+const PORT = process.env.PORT || 8080;
 
 connectDB()
-.then(()=>{
-  
-    app.listen(PORT, ()=>{
-      console.log(`server is running on port ${PORT}`)
-    })
-  
-})
-.catch((error)=>{
-  console.log(error)
-})
-
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`server is running on port ${PORT}`);
+    });
+  })
+  .catch((error) => {
+    console.log(error);
+  });
 
 // second approch to connect DB
 
@@ -40,7 +37,7 @@ connectDB()
 //     })
 
 //   } catch (error) {
-    
+
 //   }
 // })(
 

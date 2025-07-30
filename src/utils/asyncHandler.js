@@ -1,6 +1,6 @@
 // 1) promise approach
 
-const asyncHandler = (requestHandler) =>{
+export const asyncHandler = (requestHandler) =>{
   return (req, res, next) =>{
     Promise.resolve(requestHandler(req, res, next)).catch((error)=> next(error))
   }
@@ -14,7 +14,7 @@ const asyncHandler = (requestHandler) =>{
 
 // 2) try catch approach
 
-// export const asyncHandler = (requestHandler) =>{ async (req, res, next)=>{
+// export const asyncHandler = (requestHandler) => async (req, res, next)=>{
 //   try {
 //     return await requestHandler(req, res, next)
 //   } catch (error) {
@@ -25,4 +25,4 @@ const asyncHandler = (requestHandler) =>{
 //       }
 //     )
 //   }
-// }}
+// }
